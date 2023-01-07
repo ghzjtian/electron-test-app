@@ -1,24 +1,25 @@
 // main.js
 
 // electron 模块可以用来控制应用的生命周期和创建原生浏览窗口
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 
 const createWindow = () => {
   // 创建浏览窗口
   const mainWindow = new BrowserWindow({
-    width: 800,
+    width: 1800,
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
   })
 
+  ipcMain.handle('ping', () => 'pong')
   // 加载 index.html
   mainWindow.loadFile('index.html')
 
   // 打开开发工具
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 }
 
 // 这段程序将会在 Electron 结束初始化
@@ -38,6 +39,7 @@ app.whenReady().then(() => {
 // 对应用程序和它们的菜单栏来说应该时刻保持激活状态, 
 // 直到用户使用 Cmd + Q 明确退出
 app.on('window-all-closed', () => {
+  // Electron 目前只支持三个平台：win32 (Windows), linux (Linux) 和 darwin (macOS) 。
   if (process.platform !== 'darwin') app.quit()
 })
 
