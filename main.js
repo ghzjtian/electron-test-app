@@ -1,7 +1,7 @@
 // main.js
 
 // electron 模块可以用来控制应用的生命周期和创建原生浏览窗口
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron')
 const path = require('path')
 
 async function handleFileOpen() {
@@ -19,13 +19,36 @@ const createWindow = () => {
     width: 1800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      sanbox: true,
+      contextIsolation: true,
+      webSecurity: true,
     }
   })
 
+  const menu = Menu.buildFromTemplate([
+    {
+      label: app.name,
+      submenu: [
+      {
+        click: () => mainWindow.webContents.send('update-counter', 1),
+        label: 'Increment',
+      },
+      {
+        click: () => mainWindow.webContents.send('update-counter', -1),
+        label: 'Decrement',
+      }
+      ]
+    }
+
+  ])
+
   ipcMain.handle('ping', () => 'pong')
-  // 加载 index.html
+  Menu.setApplicationMenu(menu)
+  // 加载本地 index.html
   mainWindow.loadFile('index.html')
+  // 加载远程 html
+  // mainWindow.loadURL('https://google.com')
 
   // 打开开发工具
   mainWindow.webContents.openDevTools()
@@ -36,6 +59,10 @@ const createWindow = () => {
 // 部分 API 在 ready 事件触发后才能使用。
 app.whenReady().then(() => {
   ipcMain.handle('dialog:openFile', handleFileOpen)
+
+  ipcMain.on('counter-value', (_event, value) => {
+    console.log(value) // will print value to Node console
+  })
 
   createWindow()
 

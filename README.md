@@ -12,7 +12,7 @@
 
 ## 日记
 ### 进程间通讯
-* 单向: 
+* 单向(从 渲染器到主进程): 
 ```
 // main.js
 ipcMain.on('set-title', handleSetTitle)
@@ -24,6 +24,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 // renderer.js
 window.electronAPI.setTitle(title)
+```
+
+* 单向(从 主进程 到 渲染器 进程): 
+```
+// main.js
+mainWindow.webContents.send('update-counter', 1),
+
+// preload.js
+contextBridge.exposeInMainWorld('electronAPI', {
+    onUpdateCounter: (callback) => ipcRenderer.on('update-counter', callback)
+})
+
+// renderer.js
+const counter = document.getElementById('counter')
+window.electronAPI.onUpdateCounter((_event, value) => {
+    const oldValue = Number(counter.innerText)
+    const newValue = oldValue + value
+    counter.innerText = newValue
+})
 ```
 
 * 双向
