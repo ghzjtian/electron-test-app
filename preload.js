@@ -7,3 +7,7 @@ contextBridge.exposeInMainWorld('versions', {
   ping: () => ipcRenderer.invoke('ping'),
   // 能暴露的不仅仅是函数，我们还可以暴露变量
 })
+
+contextBridge.exposeInMainWorld('electronAPI',{
+  openFile: () => ipcRenderer.invoke('dialog:openFile')
+})
